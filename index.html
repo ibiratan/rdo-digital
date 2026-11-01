@@ -27,15 +27,20 @@
   .btn-save { background: #f39c12; }
   .btn-save:hover { background: #d68910; }
   
-  h2 { font-size: 15px; margin: 15px 0 5px; color: #1e6fd9; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+  .foto-box { background: #fdfdfd; border: 1px dashed #1e6fd9; padding: 10px; border-radius: 6px; text-align: center; margin-top: 5px; }
+  .foto-box input[type="file"] { display: none; }
+  .foto-label { display: inline-block; background: #1e6fd9; color: #fff; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; width: 100%;}
+  .foto-preview { max-width: 100%; max-height: 120px; border-radius: 4px; margin-top: 10px; display: none; }
+  .file-name { font-size: 11px; color: #27ae60; margin-top: 5px; display: none; font-weight: bold; }
   
+  h2 { font-size: 15px; margin: 15px 0 5px; color: #1e6fd9; border-bottom: 1px solid #eee; padding-bottom: 4px; }
   .save-status { font-size: 11px; color: #27ae60; font-weight: bold; float: right; display: none; }
 </style>
 </head>
 <body>
 
 <h1>RDO Digital <span id="statusSalvo" class="save-status">✔ Salvo no celular</span></h1>
-<p class="sub">Preencha os campos e envie no Zap</p>
+<p class="sub">Preencha os campos, escolha as fotos e compartilhe</p>
 
 <div class="container">
   <div class="grid-2">
@@ -105,20 +110,45 @@ Lixadeira</textarea>
   <textarea id="inpSeguranca" class="auto-save">Colaboradores orientados ao uso de biombo (lixadeira) e luvas
 5S realizado na área
 DDS realizado</textarea>
+
+  <h2>Anexos de Fotos</h2>
+  <div class="grid-2">
+    <!-- FOTO DDS -->
+    <div>
+      <label>Foto do DDS</label>
+      <div class="foto-box">
+        <label for="fileDDS" class="foto-label">📷 Escolher DDS</label>
+        <input type="file" id="fileDDS" accept="image/*" onchange="previewImagem(this, 'imgDDS', 'nomeDDS')">
+        <img id="imgDDS" class="foto-preview">
+        <div id="nomeDDS" class="file-name">✔ DDS anexado</div>
+      </div>
+    </div>
+    
+    <!-- FOTO ISOLAMENTO -->
+    <div>
+      <label>Foto do Isolamento</label>
+      <div class="foto-box">
+        <label for="fileIsolamento" class="foto-label">📷 Escolher Isolamento</label>
+        <input type="file" id="fileIsolamento" accept="image/*" onchange="previewImagem(this, 'imgIsolamento', 'nomeIsolamento')">
+        <img id="imgIsolamento" class="foto-preview">
+        <div id="nomeIsolamento" class="file-name">✔ Isolamento anexado</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ÁREA DE SAÍDA -->
 <div class="container">
-  <label>Resultado do RDO (Copie ou envie)</label>
+  <label>Resultado do RDO</label>
   <textarea id="resultado" style="min-height: 300px; background: #f9f9f9; font-size: 12px;" readonly></textarea>
   
-  <button class="btn btn-zap" onclick="enviarZap()">📲 Enviar no WhatsApp</button>
-  <button class="btn btn-copy" onclick="copiarTexto()">📋 Copiar Texto</button>
+  <button class="btn btn-zap" onclick="enviarTudo()">📲 Compartilhar RDO + Fotos</button>
+  <button class="btn btn-copy" onclick="copiarTexto()">📋 Copiar Apenas o Texto</button>
   <button class="btn btn-save" onclick="baixarArquivo()">💾 Salvar RDO no Celular</button>
 </div>
 
 <script>
-const STORAGE_KEY = "rdo_digital_salvo_v3";
+const STORAGE_KEY = "rdo_digital_salvo_v5";
 
 window.onload = function() {
   const salvo = localStorage.getItem(STORAGE_KEY);
@@ -242,20 +272,57 @@ function gerarTexto() {
   texto += formatarLista(seguranca) + `\n\n`;
 
   texto += `*Anexos DDS*\n`;
-  texto += `• \n\n`;
+  texto += `• (Ver foto anexa)\n\n`;
   
   texto += `*Foto do isolamento de área*\n`;
-  texto += `• \n\n`;
+  texto += `• (Ver foto anexa)\n\n`;
   
   texto += `*RDO finalizado*`;
 
   document.getElementById('resultado').value = texto;
 }
 
-function enviarZap() {
+function previewImagem(input, imgId, nomeId) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const imgPreview = document.getElementById(imgId);
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    imgPreview.src = e.target.result;
+    imgPreview.style.display = 'block';
+    document.getElementById(nomeId).style.display = 'block';
+  }
+  
+  reader.readAsDataURL(file);
+}
+
+async function enviarTudo() {
   const texto = document.getElementById('resultado').value;
-  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-  window.open(url, '_blank');
+  const fileDDS = document.getElementById('fileDDS').files[0];
+  const fileIsolamento = document.getElementById('fileIsolamento').files[0];
+  
+  const arquivos = [];
+  if (fileDDS) arquivos.push(fileDDS);
+  if (fileIsolamento) arquivos.push(fileIsolamento);
+
+  if (navigator.canShare && navigator.canShare({ files: arquivos })) {
+    try {
+      await navigator.share({
+        files: arquivos,
+        title: 'RDO Digital',
+        text: texto
+      });
+    } catch (err) {
+      console.log('Compartilhamento cancelado', err);
+    }
+  } else {
+    alert("Seu navegador não suporta envio de fotos direto pelo botão. O texto será copiado e você precisará anexar as fotos manualmente no WhatsApp.");
+    copiarTexto();
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  }
 }
 
 function copiarTexto() {
@@ -263,7 +330,7 @@ function copiarTexto() {
   textarea.select();
   textarea.setSelectionRange(0, 99999); 
   navigator.clipboard.writeText(textarea.value).then(() => {
-    alert("Texto copiado! Agora é só colar no WhatsApp.");
+    alert("Texto copiado! Cole no WhatsApp.");
   }).catch(() => {
     document.execCommand('copy');
     alert("Texto copiado!");
