@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDO Digital</title>
+<style>
+  * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+  body { margin: 10px; background: #f4f6f8; color: #222; }
+  h1 { font-size: 17px; margin: 0 0 4px; }
+  p.sub { color: #666; font-size: 12px; margin: 0 0 10px; }
+
+  .container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  
+  label { font-size: 12px; font-weight: bold; color: #444; display: block; margin-bottom: 4px; margin-top: 10px;}
+  input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccd3da; border-radius: 4px; font-size: 13px; }
+  input:focus, textarea:focus { outline: 2px solid #1e6fd9; }
+  
+  textarea { resize: vertical; min-height: 80px; font-family: monospace; }
+
+  .btn { padding: 12px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; color: #fff; width: 100%; margin-top: 10px;}
+  .btn-zap { background: #25D366; }
+  .btn-zap:hover { background: #1e8449; }
+  .btn-copy { background: #1e6fd9; }
+  .btn-copy:hover { background: #1557a8; }
+  .btn-save { background: #f39c12; }
+  .btn-save:hover { background: #d68910; }
+  
+  h2 { font-size: 15px; margin: 15px 0 5px; color: #1e6fd9; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+  
+  .save-status { font-size: 11px; color: #27ae60; font-weight: bold; float: right; display: none; }
+</style>
+</head>
+<body>
+
+<h1>RDO Digital <span id="statusSalvo" class="save-status">✔ Salvo no celular</span></h1>
+<p class="sub">Preencha os campos e envie no Zap</p>
+
+<div class="container">
+  <div class="grid-2">
+    <div>
+      <label>Data</label>
+      <input type="date" id="inpData" class="auto-save">
+    </div>
+    <div>
+      <label>Horário</label>
+      <input type="text" id="inpHorario" value="07:00–18:00" class="auto-save">
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <label>FA</label>
+      <input type="text" id="inpFA" value="1968" class="auto-save">
+    </div>
+    <div>
+      <label>Local/Setor</label>
+      <input type="text" id="inpLocal" value="GMB/SJC – Família 01" class="auto-save">
+    </div>
+  </div>
+
+  <h2>Atividades</h2>
+  <label>Mecânica (uma por linha)</label>
+  <textarea id="inpMecanica" class="auto-save">Montagem de dutos e módulos do resfriamento
+Carreg./descarreg. e posicionamento de materiais e equipamentos
+Elevação de peças, dutos e estrutura metálica
+Montagem, desmontagem e ajustes da estufa, transportador, correntes e portas</textarea>
+
+  <label>Elétrica (uma por linha)</label>
+  <textarea id="inpEletrica" class="auto-save">Instalação de infra elétrica</textarea>
+
+  <h2>Equipe e Liderança</h2>
+  <label>Liderança Falcare</label>
+  <input type="text" id="inpLideranca" value="Rafael Barbosa / Kleber Calixto" class="auto-save">
+
+  <label>Equipe (uma por linha)</label>
+  <textarea id="inpEquipe" class="auto-save">Sup. Falcare – 02
+RB Soluções TST – 01
+RB Soluções Mecânica – 02
+Torqumec – 04
+Evastec – 12</textarea>
+
+  <h2>Serviço a Quente</h2>
+  <div class="grid-2">
+    <div>
+      <label>Chamado / Atendimento</label>
+      <input type="text" id="inpHorarioQuente" value="Chamado: 08:05 | Atendimento: 08:30" class="auto-save">
+    </div>
+    <div>
+      <label>Bombeiro / Empresa</label>
+      <input type="text" id="inpBombeiro" value="Jonathan – RB Soluções" class="auto-save">
+    </div>
+  </div>
+
+  <h2>Equipamentos e Segurança</h2>
+  <label>Equipamentos (uma por linha)</label>
+  <textarea id="inpEquipamentos" class="auto-save">Plataforma elevatória
+Ferramentas manuais
+Máquina de solda
+Empilhadeira
+Lixadeira</textarea>
+
+  <label>Segurança (uma por linha)</label>
+  <textarea id="inpSeguranca" class="auto-save">Colaboradores orientados ao uso de biombo (lixadeira) e luvas
+5S realizado na área
+DDS realizado</textarea>
+</div>
+
+<!-- ÁREA DE SAÍDA -->
+<div class="container">
+  <label>Resultado do RDO (Copie ou envie)</label>
+  <textarea id="resultado" style="min-height: 300px; background: #f9f9f9; font-size: 12px;" readonly></textarea>
+  
+  <button class="btn btn-zap" onclick="enviarZap()">📲 Enviar no WhatsApp</button>
+  <button class="btn btn-copy" onclick="copiarTexto()">📋 Copiar Texto</button>
+  <button class="btn btn-save" onclick="baixarArquivo()">💾 Salvar RDO no Celular</button>
+</div>
+
+<script>
+const STORAGE_KEY = "rdo_digital_salvo_v3";
+
+window.onload = function() {
+  const salvo = localStorage.getItem(STORAGE_KEY);
+  
+  if (salvo) {
+    const dados = JSON.parse(salvo);
+    document.getElementById('inpData').value = dados.data;
+    document.getElementById('inpHorario').value = dados.horario;
+    document.getElementById('inpFA').value = dados.fa;
+    document.getElementById('inpLocal').value = dados.local;
+    document.getElementById('inpMecanica').value = dados.mecanica;
+    document.getElementById('inpEletrica').value = dados.eletrica;
+    document.getElementById('inpLideranca').value = dados.lideranca;
+    document.getElementById('inpEquipe').value = dados.equipe;
+    document.getElementById('inpHorarioQuente').value = dados.horarioQuente;
+    document.getElementById('inpBombeiro').value = dados.bombeiro;
+    document.getElementById('inpEquipamentos').value = dados.equipamentos;
+    document.getElementById('inpSeguranca').value = dados.seguranca;
+  } else {
+    const hoje = new Date();
+    const offset = hoje.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(hoje - offset)).toISOString().slice(0,10);
+    document.getElementById('inpData').value = localISOTime;
+  }
+  
+  gerarTexto();
+};
+
+document.querySelectorAll('.auto-save').forEach(el => {
+  el.addEventListener('input', function() {
+    gerarTexto();
+    salvarLocal();
+  });
+});
+
+function salvarLocal() {
+  const dados = {
+    data: document.getElementById('inpData').value,
+    horario: document.getElementById('inpHorario').value,
+    fa: document.getElementById('inpFA').value,
+    local: document.getElementById('inpLocal').value,
+    mecanica: document.getElementById('inpMecanica').value,
+    eletrica: document.getElementById('inpEletrica').value,
+    lideranca: document.getElementById('inpLideranca').value,
+    equipe: document.getElementById('inpEquipe').value,
+    horarioQuente: document.getElementById('inpHorarioQuente').value,
+    bombeiro: document.getElementById('inpBombeiro').value,
+    equipamentos: document.getElementById('inpEquipamentos').value,
+    seguranca: document.getElementById('inpSeguranca').value
+  };
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+  
+  const status = document.getElementById('statusSalvo');
+  status.style.display = 'block';
+  status.textContent = '💾 Salvando...';
+  status.style.color = '#e67e22';
+  clearTimeout(window._saveTimer);
+  window._saveTimer = setTimeout(() => {
+    status.textContent = '✔ Salvo no celular';
+    status.style.color = '#27ae60';
+  }, 400);
+}
+
+function formatarLista(texto) {
+  if (!texto.trim()) return "";
+  return texto.split('\n')
+    .filter(linha => linha.trim() !== "")
+    .map(linha => `* ${linha.trim()}`)
+    .join('\n');
+}
+
+function gerarTexto() {
+  const dataISO = document.getElementById('inpData').value;
+  let dataFormatada = "";
+  if(dataISO) {
+    const [ano, mes, dia] = dataISO.split('-');
+    dataFormatada = `${dia}/${mes}/${ano}`;
+  }
+
+  const fa = document.getElementById('inpFA').value;
+  const horario = document.getElementById('inpHorario').value;
+  const local = document.getElementById('inpLocal').value;
+  const mecanica = document.getElementById('inpMecanica').value;
+  const eletrica = document.getElementById('inpEletrica').value;
+  const lideranca = document.getElementById('inpLideranca').value;
+  const equipe = document.getElementById('inpEquipe').value;
+  const horarioQuente = document.getElementById('inpHorarioQuente').value;
+  const bombeiro = document.getElementById('inpBombeiro').value;
+  const equipamentos = document.getElementById('inpEquipamentos').value;
+  const seguranca = document.getElementById('inpSeguranca').value;
+
+  let texto = `*RDO – FA ${fa}*\n`;
+  texto += `${dataFormatada} | ${horario}\n\n`;
+  texto += `*Local:* ${local}\n\n`;
+  
+  texto += `*Atividades*\n\n`;
+  if(mecanica.trim()) {
+    texto += `*Mecânica:*\n${formatarLista(mecanica)}\n\n`;
+  }
+  if(eletrica.trim()) {
+    texto += `*Elétrica:*\n${formatarLista(eletrica)}\n\n`;
+  }
+
+  texto += `*Liderança Falcare*\n`;
+  texto += `* ${lideranca}\n\n`;
+
+  texto += `*Equipe*\n`;
+  texto += formatarLista(equipe) + `\n\n`;
+
+  texto += `*Serviço a quente:* Sim (liberação mensal)\n`;
+  texto += `* ${horarioQuente}\n`;
+  texto += `* Bombeiro: ${bombeiro}\n\n`;
+
+  texto += `*Travamento:* N/A\n\n`;
+
+  texto += `*Equipamentos*\n`;
+  texto += formatarLista(equipamentos) + `\n\n`;
+
+  texto += `*Segurança*\n`;
+  texto += formatarLista(seguranca) + `\n\n`;
+
+  texto += `*Anexos DDS*\n`;
+  texto += `• \n\n`;
+  
+  texto += `*Foto do isolamento de área*\n`;
+  texto += `• \n\n`;
+  
+  texto += `*RDO finalizado*`;
+
+  document.getElementById('resultado').value = texto;
+}
+
+function enviarZap() {
+  const texto = document.getElementById('resultado').value;
+  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  window.open(url, '_blank');
+}
+
+function copiarTexto() {
+  const textarea = document.getElementById('resultado');
+  textarea.select();
+  textarea.setSelectionRange(0, 99999); 
+  navigator.clipboard.writeText(textarea.value).then(() => {
+    alert("Texto copiado! Agora é só colar no WhatsApp.");
+  }).catch(() => {
+    document.execCommand('copy');
+    alert("Texto copiado!");
+  });
+}
+
+function baixarArquivo() {
+  const texto = document.getElementById('resultado').value;
+  const dataISO = document.getElementById('inpData').value;
+  
+  const blob = new Blob([texto], {type: "text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `RDO_${dataISO}.txt`;
+  a.click();
+}
+</script>
+</body>
+</html>
