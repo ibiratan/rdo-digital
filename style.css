@@ -1,0 +1,123 @@
+* { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+
+body {
+  margin: 10px;
+  background: #f4f6f8;
+  color: #222;
+}
+
+h1 { font-size: 17px; margin: 0 0 4px; }
+p.sub { color: #666; font-size: 12px; margin: 0 0 10px; }
+
+.container {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #444;
+  display: block;
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccd3da;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+input:focus, textarea:focus { outline: 2px solid #1e6fd9; }
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: monospace;
+}
+
+/* Botões */
+.btn {
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #fff;
+  width: 100%;
+  margin-top: 10px;
+}
+.btn-zap { background: #25D366; }
+.btn-zap:hover { background: #1e8449; }
+.btn-copy { background: #1e6fd9; }
+.btn-copy:hover { background: #1557a8; }
+.btn-save { background: #f39c12; }
+.btn-save:hover { background: #d68910; }
+
+/* Fotos */
+.foto-box {
+  background: #fdfdfd;
+  border: 1px dashed #1e6fd9;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  margin-top: 5px;
+}
+.foto-box input[type="file"] { display: none; }
+
+.foto-label {
+  display: inline-block;
+  background: #1e6fd9;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  width: 100%;
+}
+
+.foto-preview {
+  max-width: 100%;
+  max-height: 120px;
+  border-radius: 4px;
+  margin-top: 10px;
+  display: none;
+}
+
+.file-name {
+  font-size: 11px;
+  color: #27ae60;
+  margin-top: 5px;
+  display: none;
+  font-weight: bold;
+}
+
+h2 {
+  font-size: 15px;
+  margin: 15px 0 5px;
+  color: #1e6fd9;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+}
+
+.save-status {
+  font-size: 11px;
+  color: #27ae60;
+  font-weight: bold;
+  float: right;
+  display: none;
+}
